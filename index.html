@@ -357,11 +357,54 @@
 
         Plotly.newPlot(
           "plot",
-          [{ x: z, y: r, mode: "lines", line: { width: 3, color: "#092843" } }],
+          [
+            {
+              x: f1z,
+              y: f1r,
+              mode: "lines",
+              line: { width: 3, color: "#26a9e0" }, // light blue
+              name: "Chamber",
+            },
+            {
+              x: f2z,
+              y: f2r,
+              mode: "lines",
+              line: { width: 3, color: "#e61950" }, // red
+              name: "Entrance Arc",
+            },
+            {
+              x: f3z,
+              y: f3r,
+              mode: "lines",
+              line: { width: 3, color: "#f7a829" }, // orange
+              name: "Converging Linear",
+            },
+            {
+              x: f4z,
+              y: f4r,
+              mode: "lines",
+              line: { width: 3, color: "#fa791b" }, // darker orange
+              name: "Throat Arc",
+            },
+            {
+              x: f5z,
+              y: f5r,
+              mode: "lines",
+              line: { width: 3, color: "#510c7c" }, // purple
+              name: "Diverging Entrance",
+            },
+            {
+              x: f6z,
+              y: f6r,
+              mode: "lines",
+              line: { width: 3, color: "#092843" }, // navy blue
+              name: "Nozzle",
+            },
+          ],
           {
             xaxis: { title: "Axial Length (in)" },
             yaxis: { title: "Radial Length (in)" },
-            showlegend: false,
+            showlegend: true,
           }
         );
 
