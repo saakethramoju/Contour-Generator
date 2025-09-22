@@ -7,198 +7,225 @@
       body {
         font-family: sans-serif;
         margin: 20px;
+        display: flex;
+        flex-direction: row;
+        gap: 40px;
+      }
+      #controls {
+        display: flex;
+        flex-direction: column;
+        width: 300px;
       }
       label {
-        display: block;
         margin-top: 10px;
       }
       input {
-        width: 300px;
+        width: 100%;
+      }
+      #outputs {
+        margin-top: 20px;
+        font-size: 14px;
+      }
+      h1 {
+        margin-bottom: 0;
+      }
+      h2 {
+        margin-top: 40px;
+        margin-bottom: 10px;
       }
     </style>
   </head>
   <body>
-    <h1>Nozzle Contour Generator</h1>
+    <div>
+      <h1>Nozzle Contour Generator</h1>
+      <p><em>By Saaketh Ramoju</em></p>
 
-    <label
-      >Nozzle Shape:
-      <select id="b_or_c" onchange="updatePlot()">
-        <option value="Conical">Conical</option>
-        <option value="Bell">Bell</option>
-      </select>
-    </label>
+      <div id="controls">
+        <label
+          >Nozzle Shape:
+          <select id="b_or_c" onchange="updatePlot()">
+            <option value="Conical">Conical</option>
+            <option value="Bell">Bell</option>
+          </select>
+        </label>
 
-    <label
-      >Throat Radius Rt (in):
-      <input
-        id="R_t"
-        type="range"
-        min="1"
-        max="3"
-        step="0.01"
-        value="1"
-        oninput="updatePlot()"
-      />
-      <span id="R_t_val">1</span>
-    </label>
+        <label
+          >Throat Radius (in):
+          <input
+            id="R_t"
+            type="range"
+            min="1"
+            max="3"
+            step="0.01"
+            value="1"
+            oninput="updatePlot()"
+          />
+          <span id="R_t_val">1</span>
+        </label>
 
-    <label
-      >Chamber Cylindrical Length Lc (in):
-      <input
-        id="Lc"
-        type="range"
-        min="5"
-        max="15"
-        step="0.1"
-        value="7.9"
-        oninput="updatePlot()"
-      />
-      <span id="Lc_val">7.9</span>
-    </label>
+        <label
+          >Chamber Cylindrical Length (in):
+          <input
+            id="Lc"
+            type="range"
+            min="5"
+            max="15"
+            step="0.1"
+            value="7.9"
+            oninput="updatePlot()"
+          />
+          <span id="Lc_val">7.9</span>
+        </label>
 
-    <label
-      >Contraction Ratio eps_c:
-      <input
-        id="eps_c"
-        type="range"
-        min="2"
-        max="4.5"
-        step="0.1"
-        value="3.8"
-        oninput="updatePlot()"
-      />
-      <span id="eps_c_val">3.8</span>
-    </label>
+        <label
+          >Contraction Ratio:
+          <input
+            id="eps_c"
+            type="range"
+            min="2"
+            max="4.5"
+            step="0.1"
+            value="3.8"
+            oninput="updatePlot()"
+          />
+          <span id="eps_c_val">3.8</span>
+        </label>
 
-    <label
-      >Convergence Half-Angle θc (deg):
-      <input
-        id="theta_c"
-        type="range"
-        min="25"
-        max="40"
-        step="0.1"
-        value="37.5"
-        oninput="updatePlot()"
-      />
-      <span id="theta_c_val">37.5</span>
-    </label>
+        <label
+          >Convergence Half-Angle (°):
+          <input
+            id="theta_c"
+            type="range"
+            min="25"
+            max="40"
+            step="0.1"
+            value="37.5"
+            oninput="updatePlot()"
+          />
+          <span id="theta_c_val">37.5</span>
+        </label>
 
-    <label
-      >Rc / Rt:
-      <input
-        id="Rc_Rt"
-        type="range"
-        min="0.5"
-        max="1.5"
-        step="0.1"
-        value="1"
-        oninput="updatePlot()"
-      />
-      <span id="Rc_Rt_val">1</span>
-    </label>
+        <label
+          >Convergence Radius Rc/Rt:
+          <input
+            id="Rc_Rt"
+            type="range"
+            min="0.5"
+            max="1.5"
+            step="0.1"
+            value="1"
+            oninput="updatePlot()"
+          />
+          <span id="Rc_Rt_val">1</span>
+        </label>
 
-    <label
-      >Rtc / Rt:
-      <input
-        id="Rtc_Rt"
-        type="range"
-        min="0.5"
-        max="1.5"
-        step="0.1"
-        value="1"
-        oninput="updatePlot()"
-      />
-      <span id="Rtc_Rt_val">1</span>
-    </label>
+        <label
+          >Lead-in Radius Rtc/Rt:
+          <input
+            id="Rtc_Rt"
+            type="range"
+            min="0.5"
+            max="1.5"
+            step="0.1"
+            value="1"
+            oninput="updatePlot()"
+          />
+          <span id="Rtc_Rt_val">1</span>
+        </label>
 
-    <label
-      >Rtd / Rt:
-      <input
-        id="Rtd_Rt"
-        type="range"
-        min="0.3"
-        max="1.5"
-        step="0.1"
-        value="0.5"
-        oninput="updatePlot()"
-      />
-      <span id="Rtd_Rt_val">0.5</span>
-    </label>
+        <label
+          >Lead-out Radius Rtd/Rt:
+          <input
+            id="Rtd_Rt"
+            type="range"
+            min="0.3"
+            max="1.5"
+            step="0.1"
+            value="0.5"
+            oninput="updatePlot()"
+          />
+          <span id="Rtd_Rt_val">0.5</span>
+        </label>
 
-    <label
-      >Expansion Ratio eps:
-      <input
-        id="eps"
-        type="range"
-        min="2"
-        max="100"
-        step="0.1"
-        value="4"
-        oninput="updatePlot()"
-      />
-      <span id="eps_val">4</span>
-    </label>
+        <label
+          >Expansion Ratio:
+          <input
+            id="eps"
+            type="range"
+            min="2"
+            max="100"
+            step="0.1"
+            value="4"
+            oninput="updatePlot()"
+          />
+          <span id="eps_val">4</span>
+        </label>
 
-    <label
-      >Divergence Half-Angle α (deg, Conical only):
-      <input
-        id="alpha"
-        type="range"
-        min="10"
-        max="25"
-        step="1"
-        value="15"
-        oninput="updatePlot()"
-      />
-      <span id="alpha_val">15</span>
-    </label>
+        <label
+          >Divergence Half-Angle (°) [Conical]:
+          <input
+            id="alpha"
+            type="range"
+            min="10"
+            max="25"
+            step="1"
+            value="15"
+            oninput="updatePlot()"
+          />
+          <span id="alpha_val">15</span>
+        </label>
 
-    <label
-      >Divergence Entrance Angle θn (deg, Bell only):
-      <input
-        id="theta_n"
-        type="range"
-        min="20"
-        max="40"
-        step="1"
-        value="22"
-        oninput="updatePlot()"
-      />
-      <span id="theta_n_val">22</span>
-    </label>
+        <label
+          >Divergence Entrance Angle (°) [Bell]:
+          <input
+            id="theta_n"
+            type="range"
+            min="20"
+            max="40"
+            step="1"
+            value="22"
+            oninput="updatePlot()"
+          />
+          <span id="theta_n_val">22</span>
+        </label>
 
-    <label
-      >Divergence Exit Angle θe (deg, Bell only):
-      <input
-        id="theta_e"
-        type="range"
-        min="5"
-        max="20"
-        step="1"
-        value="10"
-        oninput="updatePlot()"
-      />
-      <span id="theta_e_val">10</span>
-    </label>
+        <label
+          >Divergence Exit Angle (°) [Bell]:
+          <input
+            id="theta_e"
+            type="range"
+            min="5"
+            max="20"
+            step="1"
+            value="10"
+            oninput="updatePlot()"
+          />
+          <span id="theta_e_val">10</span>
+        </label>
 
-    <label
-      >Percent Bell Lf (%):
-      <input
-        id="Lf"
-        type="range"
-        min="60"
-        max="100"
-        step="1"
-        value="80"
-        oninput="updatePlot()"
-      />
-      <span id="Lf_val">80</span>
-    </label>
+        <label
+          >Percent Bell Lf (%):
+          <input
+            id="Lf"
+            type="range"
+            min="60"
+            max="100"
+            step="1"
+            value="80"
+            oninput="updatePlot()"
+          />
+          <span id="Lf_val">80</span>
+        </label>
 
-    <div id="plot" style="width: 100%; height: 600px; margin-top: 20px"></div>
+        <button onclick="downloadCSV()">Download Contour CSV</button>
+      </div>
+    </div>
 
-    <button onclick="downloadCSV()">Download Contour CSV</button>
+    <div>
+      <div id="plot" style="width: 800px; height: 600px"></div>
+      <h2>Calculated Values</h2>
+      <div id="outputs"></div>
+    </div>
 
     <script>
       function getVal(id) {
@@ -221,31 +248,23 @@
         let Lc = getVal("Lc");
         let eps_c = getVal("eps_c");
         let theta_c = (getVal("theta_c") * Math.PI) / 180;
-        let Rc_Rt = getVal("Rc_Rt");
-        let Rtc_Rt = getVal("Rtc_Rt");
-        let Rtd_Rt = getVal("Rtd_Rt");
+        let Rc = getVal("Rc_Rt") * R_t;
+        let Rtc = getVal("Rtc_Rt") * R_t;
+        let Rtd = getVal("Rtd_Rt") * R_t;
         let eps = getVal("eps");
         let alpha = (getVal("alpha") * Math.PI) / 180;
         let theta_n = (getVal("theta_n") * Math.PI) / 180;
         let theta_e = (getVal("theta_e") * Math.PI) / 180;
         let Lf = getVal("Lf");
 
-        let Rc = Rc_Rt * R_t;
-        let Rtc = Rtc_Rt * R_t;
-        let Rtd = Rtd_Rt * R_t;
-
-        // Chamber cylinder
+        // --- Geometry sections (same as before) ---
         let f1z = linspace(0, Lc, 200);
         let f1r = f1z.map(() => Math.sqrt(eps_c) * R_t);
-
-        // Converging entrance arc
         let t2 = linspace(Math.PI / 2, Math.PI / 2 - theta_c, 200);
         let f2z = t2.map((tt) => Rc * Math.cos(tt) + Lc);
         let f2r = t2.map(
           (tt) => Rc * Math.sin(tt) + Math.sqrt(eps_c) * R_t - Rc
         );
-
-        // Converging linear
         let y3 =
           R_t * (Math.sqrt(eps_c) - 1) -
           (Rc - Rc * Math.cos(theta_c)) -
@@ -256,8 +275,6 @@
         let f3r = f3z.map(
           (z) => m3 * (z - f2z[f2z.length - 1]) + f2r[f2r.length - 1]
         );
-
-        // Converging throat arc
         let h = f3z[f3z.length - 1] + Rtc * Math.sin(theta_c);
         let k = R_t + Rtc;
         let t4 = linspace(
@@ -268,7 +285,6 @@
         let f4z = t4.map((tt) => Rtc * Math.cos(tt) + h);
         let f4r = t4.map((tt) => Rtc * Math.sin(tt) + k);
 
-        // Diverging entrance arc
         let f5z, f5r;
         if (b_or_c == "Conical") {
           let t5 = linspace((3 * Math.PI) / 2, (3 * Math.PI) / 2 + alpha, 200);
@@ -284,7 +300,6 @@
           f5r = t5.map((tt) => Rtd * Math.sin(tt) + R_t + Rtd);
         }
 
-        // Diverging nozzle
         let f6z, f6r;
         if (b_or_c == "Conical") {
           let length =
@@ -322,7 +337,6 @@
           );
         }
 
-        // Concatenate full contour
         let z = [].concat(
           f1z,
           f2z.slice(1),
@@ -339,27 +353,41 @@
           f5r.slice(1),
           f6r.slice(1)
         );
-
-        // Save globally for CSV
         window.currentContour = { z, r };
 
-        // Plot
         Plotly.newPlot(
           "plot",
-          [
-            {
-              x: z,
-              y: r,
-              mode: "lines",
-              line: { width: 3, color: "#092843" },
-            },
-          ],
+          [{ x: z, y: r, mode: "lines", line: { width: 3, color: "#092843" } }],
           {
             xaxis: { title: "Axial Length (in)" },
             yaxis: { title: "Radial Length (in)" },
             showlegend: false,
           }
         );
+
+        // --- Calculations ---
+        let At = Math.PI * R_t ** 2;
+        let Ainj = Math.PI * f1r[0] ** 2;
+        let Aexit = Math.PI * f6r[f6r.length - 1] ** 2;
+        let Lconv = f4z[f4z.length - 1] - f2z[0];
+        let Lnoz = f6z[f6z.length - 1] - f4z[f4z.length - 1];
+        let vol = 0,
+          surf = 0;
+        for (let i = 0; i < f1z.length - 1; i++) {
+          let dx = f1z[i + 1] - f1z[i];
+          vol += ((Math.PI * (f1r[i] ** 2 + f1r[i + 1] ** 2)) / 2) * dx;
+        }
+        let Lstar = vol / At;
+
+        document.getElementById("outputs").innerHTML = `
+          Throat Area At: ${At.toFixed(3)} in²<br>
+          Injector Area Ainj: ${Ainj.toFixed(3)} in²<br>
+          Exit Area Aexit: ${Aexit.toFixed(3)} in²<br>
+          Converging Length Lconv: ${Lconv.toFixed(3)} in<br>
+          Nozzle Length Lnoz: ${Lnoz.toFixed(3)} in<br>
+          Chamber Volume: ${vol.toFixed(3)} in³<br>
+          L*: ${Lstar.toFixed(3)} in
+        `;
       }
 
       function downloadCSV() {
