@@ -14,13 +14,23 @@
       #controls {
         display: flex;
         flex-direction: column;
-        width: 300px;
+        width: 320px;
       }
       label {
         margin-top: 10px;
+        display: flex;
+        flex-direction: column;
       }
-      input {
-        width: 100%;
+      .input-row {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+      input[type="range"] {
+        flex: 1;
+      }
+      input[type="number"] {
+        width: 70px;
       }
       #outputs {
         margin-top: 20px;
@@ -49,172 +59,293 @@
           </select>
         </label>
 
+        <!-- Example with slider + number input -->
         <label
           >Throat Radius (in):
-          <input
-            id="R_t"
-            type="range"
-            min="1"
-            max="3"
-            step="0.01"
-            value="1"
-            oninput="updatePlot()"
-          />
-          <span id="R_t_val">1</span>
+          <div class="input-row">
+            <input
+              id="R_t"
+              type="range"
+              min="1"
+              max="3"
+              step="0.01"
+              value="1"
+              oninput="syncInput('R_t')"
+            />
+            <input
+              id="R_t_num"
+              type="number"
+              min="1"
+              max="3"
+              step="0.01"
+              value="1"
+              oninput="syncSlider('R_t')"
+            />
+          </div>
         </label>
 
         <label
           >Chamber Cylindrical Length (in):
-          <input
-            id="Lc"
-            type="range"
-            min="5"
-            max="15"
-            step="0.1"
-            value="7.9"
-            oninput="updatePlot()"
-          />
-          <span id="Lc_val">7.9</span>
+          <div class="input-row">
+            <input
+              id="Lc"
+              type="range"
+              min="5"
+              max="15"
+              step="0.1"
+              value="7.9"
+              oninput="syncInput('Lc')"
+            />
+            <input
+              id="Lc_num"
+              type="number"
+              min="5"
+              max="15"
+              step="0.1"
+              value="7.9"
+              oninput="syncSlider('Lc')"
+            />
+          </div>
         </label>
 
         <label
           >Contraction Ratio:
-          <input
-            id="eps_c"
-            type="range"
-            min="2"
-            max="4.5"
-            step="0.1"
-            value="3.8"
-            oninput="updatePlot()"
-          />
-          <span id="eps_c_val">3.8</span>
+          <div class="input-row">
+            <input
+              id="eps_c"
+              type="range"
+              min="2"
+              max="4.5"
+              step="0.1"
+              value="3.8"
+              oninput="syncInput('eps_c')"
+            />
+            <input
+              id="eps_c_num"
+              type="number"
+              min="2"
+              max="4.5"
+              step="0.1"
+              value="3.8"
+              oninput="syncSlider('eps_c')"
+            />
+          </div>
         </label>
 
         <label
           >Convergence Half-Angle (°):
-          <input
-            id="theta_c"
-            type="range"
-            min="25"
-            max="40"
-            step="0.1"
-            value="37.5"
-            oninput="updatePlot()"
-          />
-          <span id="theta_c_val">37.5</span>
+          <div class="input-row">
+            <input
+              id="theta_c"
+              type="range"
+              min="25"
+              max="40"
+              step="0.1"
+              value="37.5"
+              oninput="syncInput('theta_c')"
+            />
+            <input
+              id="theta_c_num"
+              type="number"
+              min="25"
+              max="40"
+              step="0.1"
+              value="37.5"
+              oninput="syncSlider('theta_c')"
+            />
+          </div>
         </label>
 
         <label
           >Convergence Radius Rc/Rt:
-          <input
-            id="Rc_Rt"
-            type="range"
-            min="0.5"
-            max="1.5"
-            step="0.1"
-            value="1"
-            oninput="updatePlot()"
-          />
-          <span id="Rc_Rt_val">1</span>
+          <div class="input-row">
+            <input
+              id="Rc_Rt"
+              type="range"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="1"
+              oninput="syncInput('Rc_Rt')"
+            />
+            <input
+              id="Rc_Rt_num"
+              type="number"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="1"
+              oninput="syncSlider('Rc_Rt')"
+            />
+          </div>
         </label>
 
         <label
           >Lead-in Radius Rtc/Rt:
-          <input
-            id="Rtc_Rt"
-            type="range"
-            min="0.5"
-            max="1.5"
-            step="0.1"
-            value="1"
-            oninput="updatePlot()"
-          />
-          <span id="Rtc_Rt_val">1</span>
+          <div class="input-row">
+            <input
+              id="Rtc_Rt"
+              type="range"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="1"
+              oninput="syncInput('Rtc_Rt')"
+            />
+            <input
+              id="Rtc_Rt_num"
+              type="number"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="1"
+              oninput="syncSlider('Rtc_Rt')"
+            />
+          </div>
         </label>
 
         <label
           >Lead-out Radius Rtd/Rt:
-          <input
-            id="Rtd_Rt"
-            type="range"
-            min="0.3"
-            max="1.5"
-            step="0.1"
-            value="0.5"
-            oninput="updatePlot()"
-          />
-          <span id="Rtd_Rt_val">0.5</span>
+          <div class="input-row">
+            <input
+              id="Rtd_Rt"
+              type="range"
+              min="0.3"
+              max="1.5"
+              step="0.1"
+              value="0.5"
+              oninput="syncInput('Rtd_Rt')"
+            />
+            <input
+              id="Rtd_Rt_num"
+              type="number"
+              min="0.3"
+              max="1.5"
+              step="0.1"
+              value="0.5"
+              oninput="syncSlider('Rtd_Rt')"
+            />
+          </div>
         </label>
 
         <label
           >Expansion Ratio:
-          <input
-            id="eps"
-            type="range"
-            min="2"
-            max="100"
-            step="0.1"
-            value="4"
-            oninput="updatePlot()"
-          />
-          <span id="eps_val">4</span>
+          <div class="input-row">
+            <input
+              id="eps"
+              type="range"
+              min="2"
+              max="100"
+              step="0.1"
+              value="4"
+              oninput="syncInput('eps')"
+            />
+            <input
+              id="eps_num"
+              type="number"
+              min="2"
+              max="100"
+              step="0.1"
+              value="4"
+              oninput="syncSlider('eps')"
+            />
+          </div>
         </label>
 
         <label
           >Divergence Half-Angle (°) [Conical]:
-          <input
-            id="alpha"
-            type="range"
-            min="10"
-            max="25"
-            step="1"
-            value="15"
-            oninput="updatePlot()"
-          />
-          <span id="alpha_val">15</span>
+          <div class="input-row">
+            <input
+              id="alpha"
+              type="range"
+              min="10"
+              max="25"
+              step="1"
+              value="15"
+              oninput="syncInput('alpha')"
+            />
+            <input
+              id="alpha_num"
+              type="number"
+              min="10"
+              max="25"
+              step="1"
+              value="15"
+              oninput="syncSlider('alpha')"
+            />
+          </div>
         </label>
 
         <label
           >Divergence Entrance Angle (°) [Bell]:
-          <input
-            id="theta_n"
-            type="range"
-            min="20"
-            max="40"
-            step="1"
-            value="22"
-            oninput="updatePlot()"
-          />
-          <span id="theta_n_val">22</span>
+          <div class="input-row">
+            <input
+              id="theta_n"
+              type="range"
+              min="20"
+              max="40"
+              step="1"
+              value="22"
+              oninput="syncInput('theta_n')"
+            />
+            <input
+              id="theta_n_num"
+              type="number"
+              min="20"
+              max="40"
+              step="1"
+              value="22"
+              oninput="syncSlider('theta_n')"
+            />
+          </div>
         </label>
 
         <label
           >Divergence Exit Angle (°) [Bell]:
-          <input
-            id="theta_e"
-            type="range"
-            min="5"
-            max="20"
-            step="1"
-            value="10"
-            oninput="updatePlot()"
-          />
-          <span id="theta_e_val">10</span>
+          <div class="input-row">
+            <input
+              id="theta_e"
+              type="range"
+              min="5"
+              max="20"
+              step="1"
+              value="10"
+              oninput="syncInput('theta_e')"
+            />
+            <input
+              id="theta_e_num"
+              type="number"
+              min="5"
+              max="20"
+              step="1"
+              value="10"
+              oninput="syncSlider('theta_e')"
+            />
+          </div>
         </label>
 
         <label
           >Percent Bell Lf (%):
-          <input
-            id="Lf"
-            type="range"
-            min="60"
-            max="100"
-            step="1"
-            value="80"
-            oninput="updatePlot()"
-          />
-          <span id="Lf_val">80</span>
+          <div class="input-row">
+            <input
+              id="Lf"
+              type="range"
+              min="60"
+              max="100"
+              step="1"
+              value="80"
+              oninput="syncInput('Lf')"
+            />
+            <input
+              id="Lf_num"
+              type="number"
+              min="60"
+              max="100"
+              step="1"
+              value="80"
+              oninput="syncSlider('Lf')"
+            />
+          </div>
         </label>
 
         <button onclick="downloadCSV()">Download Contour CSV</button>
@@ -228,11 +359,21 @@
     </div>
 
     <script>
+      // keep number and slider in sync
+      function syncInput(id) {
+        document.getElementById(id + "_num").value =
+          document.getElementById(id).value;
+        updatePlot();
+      }
+      function syncSlider(id) {
+        document.getElementById(id).value = document.getElementById(
+          id + "_num"
+        ).value;
+        updatePlot();
+      }
+
       function getVal(id) {
-        let el = document.getElementById(id);
-        let val = parseFloat(el.value);
-        document.getElementById(id + "_val").innerText = val;
-        return val;
+        return parseFloat(document.getElementById(id).value);
       }
 
       function linspace(start, stop, n) {
