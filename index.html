@@ -555,12 +555,18 @@
         let Aexit = Math.PI * f6r[f6r.length - 1] ** 2;
         let Lconv = f4z[f4z.length - 1] - f2z[0];
         let Lnoz = f6z[f6z.length - 1] - f4z[f4z.length - 1];
-        let vol = 0,
-          surf = 0;
-        for (let i = 0; i < f1z.length - 1; i++) {
-          let dx = f1z[i + 1] - f1z[i];
-          vol += ((Math.PI * (f1r[i] ** 2 + f1r[i + 1] ** 2)) / 2) * dx;
+        // Merge all chamber-to-throat contour segments
+        let chamberZ = [].concat(f1z, f2z.slice(1), f3z.slice(1), f4z.slice(1));
+        let chamberR = [].concat(f1r, f2r.slice(1), f3r.slice(1), f4r.slice(1));
+
+        // Volume of revolution (disk method)
+        let vol = 0;
+        for (let i = 0; i < chamberZ.length - 1; i++) {
+          let dx = chamberZ[i + 1] - chamberZ[i];
+          vol +=
+            ((Math.PI * (chamberR[i] ** 2 + chamberR[i + 1] ** 2)) / 2) * dx;
         }
+
         let Lstar = vol / At;
 
         document.getElementById("outputs").innerHTML = `
