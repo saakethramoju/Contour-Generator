@@ -503,6 +503,9 @@
           range: [0, Math.max(3 * R_ch, 1.05 * rMax)],
         };
 
+        const zMax = Math.max(...z); // max axial length across the full contour
+        const xAxis = { title: "Axial Length (in)", range: [0, 1.05 * zMax] };
+
         Plotly.newPlot(
           "plot",
           [
@@ -550,7 +553,7 @@
             },
           ],
           {
-            xaxis: { title: "Axial Length (in)" },
+            xaxis: xAxis,
             yaxis: yAxis,
             showlegend: true,
           }
