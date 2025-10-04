@@ -44,10 +44,91 @@
         margin-bottom: 10px;
       }
     </style>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* THEME TOKENS */
+      :root {
+        --bg: #0b0f19; /* dark default */
+        --panel: #111827;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --accent: #22d3ee;
+        --input: #1f2937;
+        --border: #334155;
+        --link: #38bdf8;
+        --font: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+      }
+      [data-theme="light"] {
+        --bg: #ffffff;
+        --panel: #f8fafc;
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #0ea5e9;
+        --input: #ffffff;
+        --border: #e2e8f0;
+        --link: #0284c7;
+      }
+
+      /* APPLY TOKENS */
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+      }
+      #controls label {
+        color: var(--text);
+      }
+      #controls .input-row input[type="number"],
+      #controls .input-row input[type="range"],
+      #controls select {
+        background: var(--input);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 8px;
+      }
+      #controls button {
+        background: var(--accent);
+        color: #001018;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-top: 14px;
+        cursor: pointer;
+      }
+      a {
+        color: var(--link);
+      }
+      #vizRow {
+        background: transparent;
+      }
+    </style>
   </head>
-  <body>
+  <body data-theme="dark">
     <div>
-      <h1>Nozzle Contour Generator</h1>
+      <h1 style="display: flex; align-items: center; gap: 12px">
+        Nozzle Contour Generator
+        <button
+          id="themeToggle"
+          style="
+            margin-left: 8px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+          "
+        >
+          Light mode
+        </button>
+      </h1>
       <p><em>By Saaketh Ramoju</em></p>
 
       <div id="controls">
@@ -372,6 +453,36 @@
     </div>
 
     <script>
+      // THEME HELPERS
+      function setTheme(t) {
+        document.body.setAttribute("data-theme", t);
+        localStorage.setItem("nozzle_theme", t);
+        const btn = document.getElementById("themeToggle");
+        if (btn) btn.textContent = t === "dark" ? "Light mode" : "Dark mode";
+      }
+      function getTheme() {
+        return document.body.getAttribute("data-theme") || "dark";
+      }
+      // init theme on load
+      (function initTheme() {
+        const saved = localStorage.getItem("nozzle_theme");
+        if (saved === "light" || saved === "dark") {
+          document.body.setAttribute("data-theme", saved);
+        } // else body already defaults to dark
+        window.addEventListener("DOMContentLoaded", () => {
+          const btn = document.getElementById("themeToggle");
+          if (btn) {
+            btn.addEventListener("click", () => {
+              setTheme(getTheme() === "dark" ? "light" : "dark");
+              updatePlot(); // re-render plots with new template/colors
+            });
+            // reflect initial label
+            btn.textContent =
+              getTheme() === "dark" ? "Light mode" : "Dark mode";
+          }
+        });
+      })();
+
       // keep number and slider in sync
       function syncInput(id) {
         document.getElementById(id + "_num").value =
@@ -511,6 +622,14 @@
         );
         window.currentContour = { z, r };
 
+        // ==== THEME VARS FOR PLOTS ====
+        const theme = getTheme();
+        const template = theme === "dark" ? "plotly_dark" : "plotly_white";
+        const paperBG =
+          getComputedStyle(document.body).getPropertyValue("--bg").trim() ||
+          (theme === "dark" ? "#0b0f19" : "#ffffff");
+        const plotBG = paperBG; // match paper
+
         // ---- shared extents (unique names so they won't collide) ----
         const zMinAll = Math.min(...z);
         const zMaxAll = Math.max(...z);
@@ -567,12 +686,17 @@
         Plotly.newPlot(
           plot3dEl,
           [surf],
-          { scene, margin: { l: 0, r: 0, t: 0, b: 0 } },
+          {
+            scene,
+            margin: { l: 0, r: 0, t: 0, b: 0 },
+            paper_bgcolor: paperBG,
+            plot_bgcolor: plotBG,
+            template,
+          },
           {
             responsive: true,
-            scrollZoom: true, // <--- wheel zoom
-            displaylogo: false, // cleaner toolbar
-            // leave the 3D pan/orbit/zoom tools available in the mode bar
+            scrollZoom: true,
+            displaylogo: false,
           }
         );
 
@@ -664,8 +788,11 @@
             yaxis: yAxis,
             showlegend: true,
             margin: { l: 40, r: 10, t: 20, b: 40 },
+            paper_bgcolor: paperBG,
+            plot_bgcolor: plotBG,
+            template,
           },
-          { responsive: true } // <--- ADD THIS CONFIG OBJECT
+          { responsive: true }
         );
 
         // --- Calculations ---
