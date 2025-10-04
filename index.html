@@ -36,6 +36,47 @@
         flex-direction: column;
         width: 320px;
       }
+
+      /* --- Make STL panel match the controls look --- */
+      #stlPanel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      #stlPanel label {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        color: var(--text);
+      }
+
+      #stlPanel .input-row {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+
+      #stlPanel .input-row input[type="number"] {
+        background: var(--input);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 8px;
+        width: 120px;
+      }
+
+      /* Button same style as the CSV button */
+      #stlPanel button {
+        background: var(--accent);
+        color: #001018;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+
       label {
         margin-top: 10px;
         display: flex;
@@ -467,27 +508,19 @@
           "
         >
           <div id="plot3d" style="height: 520px"></div>
-
           <!-- STL panel directly under 3D plot -->
-          <div
-            id="stlPanel"
-            style="
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              flex-wrap: wrap;
-            "
-          >
-            <label style="display: flex; align-items: center; gap: 8px">
-              <span>Wall Thickness (in):</span>
-              <input
-                id="wall_t_val"
-                type="number"
-                min="0"
-                step="0.001"
-                value="0.100"
-                style="width: 100px"
-              />
+          <div id="stlPanel">
+            <label>
+              Wall Thickness (in):
+              <div class="input-row">
+                <input
+                  id="wall_t_val"
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  value="0.100"
+                />
+              </div>
             </label>
 
             <button onclick="downloadSTL()">Download STL</button>
@@ -1036,6 +1069,9 @@
             parseFloat(document.getElementById("wall_t_val").value || "0")
           ) || 0;
 
+        if (t === 0) {
+          return exportSingleSurfaceSTL(z, r, zThroat);
+        }
         // Smoother revolve -> bigger file. 180 is a good default.
         const nTheta = 180;
         const twoPi = Math.PI * 2;
@@ -1122,6 +1158,78 @@
         // This keeps the shell open at both ends and avoids rim-normal confusion in CAD/slicers.
         // If you later want a closed, watertight solid, we can add properly-oriented annular rims.
 
+        // OPTIONAL: add end caps to make a closed shell
+        function addEndCaps(zi, riInner, riOuter, nTheta, facets) {
+          const twoPi = Math.PI * 2;
+
+          function normal(a, b, c) {
+            const ux = b[0] - a[0],
+              uy = b[1] - a[1],
+              uz = b[2] - a[2];
+            const vx = c[0] - a[0],
+              vy = c[1] - a[1],
+              vz = c[2] - a[2];
+            const nx = uy * vz - uz * vy,
+              ny = uz * vx - ux * vz,
+              nz = ux * vy - uy * vx;
+            const len = Math.hypot(nx, ny, nz) || 1;
+            return [nx / len, ny / len, nz / len];
+          }
+          function addTri(v0, v1, v2) {
+            facets.push([normal(v0, v1, v2), v0, v1, v2]);
+          }
+
+          // Start ring (lower z) — normal ~ -Z
+          {
+            const i = 0,
+              z0 = zi[i];
+            for (let tIdx = 0; tIdx < nTheta; tIdx++) {
+              const th0 = (tIdx * twoPi) / nTheta,
+                th1 = ((tIdx + 1) * twoPi) / nTheta;
+              const c0 = Math.cos(th0),
+                s0 = Math.sin(th0),
+                c1 = Math.cos(th1),
+                s1 = Math.sin(th1);
+              const ro = riOuter[i],
+                ri = riInner[i];
+
+              const o0 = [ro * c0, ro * s0, z0],
+                o1 = [ro * c1, ro * s1, z0];
+              const i0 = [ri * c0, ri * s0, z0],
+                i1 = [ri * c1, ri * s1, z0];
+
+              addTri(o0, i1, o1);
+              addTri(o0, i0, i1);
+            }
+          }
+
+          // End ring (higher z) — normal ~ +Z
+          {
+            const i = zi.length - 1,
+              z1 = zi[i];
+            for (let tIdx = 0; tIdx < nTheta; tIdx++) {
+              const th0 = (tIdx * twoPi) / nTheta,
+                th1 = ((tIdx + 1) * twoPi) / nTheta;
+              const c0 = Math.cos(th0),
+                s0 = Math.sin(th0),
+                c1 = Math.cos(th1),
+                s1 = Math.sin(th1);
+              const ro = riOuter[i],
+                ri = riInner[i];
+
+              const o0 = [ro * c0, ro * s0, z1],
+                o1 = [ro * c1, ro * s1, z1];
+              const i0 = [ri * c0, ri * s0, z1],
+                i1 = [ri * c1, ri * s1, z1];
+
+              addTri(o0, o1, i1);
+              addTri(o0, i1, i0);
+            }
+          }
+        }
+
+        addEndCaps(zi, riInner, riOuter, nTheta, facets);
+
         // ASCII STL
         let stl = "solid nozzle_shell\n";
         for (const [n, a, b, c] of facets) {
@@ -1140,6 +1248,68 @@
         const a = document.createElement("a");
         a.href = url;
         a.download = `nozzle_shell_t${t.toFixed(3)}in.stl`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportSingleSurfaceSTL(z, r, zThroat) {
+        const nTheta = 180;
+        const twoPi = Math.PI * 2;
+
+        const zi = z.map((zz) => zz - zThroat);
+        const facets = [];
+
+        function normal(a, b, c) {
+          const ux = b[0] - a[0],
+            uy = b[1] - a[1],
+            uz = b[2] - a[2];
+          const vx = c[0] - a[0],
+            vy = c[1] - a[1],
+            vz = c[2] - a[2];
+          const nx = uy * vz - uz * vy,
+            ny = uz * vx - ux * vz,
+            nz = ux * vy - uy * vx;
+          const len = Math.hypot(nx, ny, nz) || 1;
+          return [nx / len, ny / len, nz / len];
+        }
+        function addTri(v0, v1, v2) {
+          facets.push([normal(v0, v1, v2), v0, v1, v2]);
+        }
+
+        for (let tIdx = 0; tIdx < nTheta; tIdx++) {
+          const th0 = (tIdx * twoPi) / nTheta,
+            th1 = ((tIdx + 1) * twoPi) / nTheta;
+          const c0 = Math.cos(th0),
+            s0 = Math.sin(th0),
+            c1 = Math.cos(th1),
+            s1 = Math.sin(th1);
+          for (let i = 0; i < zi.length - 1; i++) {
+            const z0 = zi[i],
+              z1 = zi[i + 1];
+            const r0 = r[i],
+              r1 = r[i + 1];
+            const v00 = [r0 * c0, r0 * s0, z0],
+              v01 = [r0 * c1, r0 * s1, z0];
+            const v10 = [r1 * c0, r1 * s0, z1],
+              v11 = [r1 * c1, r1 * s1, z1];
+            addTri(v00, v01, v11);
+            addTri(v00, v11, v10);
+          }
+        }
+
+        let stl = "solid nozzle_surface\n";
+        for (const [n, a, b, c] of facets) {
+          stl += ` facet normal ${n[0]} ${n[1]} ${n[2]}\n  outer loop\n`;
+          stl += `   vertex ${a[0]} ${a[1]} ${a[2]}\n   vertex ${b[0]} ${b[1]} ${b[2]}\n   vertex ${c[0]} ${c[1]} ${c[2]}\n`;
+          stl += "  endloop\n endfacet\n";
+        }
+        stl += "endsolid nozzle_surface\n";
+
+        const blob = new Blob([stl], { type: "application/sla" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "nozzle_surface.stl";
         a.click();
         URL.revokeObjectURL(url);
       }
