@@ -736,12 +736,33 @@
         const Zgrid = theta.map(() => z.map((zi) => zi - zThroat));
         const Rgrid = theta.map(() => r.slice()); // same shape as X/Y/Z
 
-        // High-contrast (no pink) dark-mode colorscale: blue → cyan → lime → yellow → white
+        // ----- radius-only field with better contrast -----
+        const rMin = Math.min(...r),
+          rMax = Math.max(...r);
+        const rNorm1D = r.map((v) => (v - rMin) / Math.max(1e-9, rMax - rMin));
+
+        // Non-linear remap to avoid "flat" regions (radius-only!)
+        const gamma = 0.65; // tweak 0.5–0.9; lower = more contrast
+        const rEq = rNorm1D.map((t) => Math.pow(t, gamma));
+
+        // Expand to 2D for Plotly surfacecolor
+        const surfaceRonly = theta.map(() => rEq);
+
+        // Colorscale: magenta → orange → yellow → lime → cyan with extra mid stops
         const darkSurfaceScale = [
           [0.0, "#FF00A1"], // magenta
-          [0.25, "#FF9400"], // orange
+          [0.07, "#FF2BA8"],
+          [0.14, "#FF55A6"],
+          [0.21, "#FF7E71"], // bridging toward orange
+          [0.28, "#FF9400"], // orange
+          [0.35, "#FFB200"],
+          [0.42, "#FFD100"],
           [0.5, "#FFEE00"], // yellow
-          [0.75, "#B4FF2B"], // lime
+          [0.58, "#E9FA0F"],
+          [0.66, "#CBFF1E"],
+          [0.74, "#B4FF2B"], // lime
+          [0.82, "#77F7C9"],
+          [0.9, "#46EAE2"],
           [1.0, "#24DFE2"], // cyan
         ];
 
@@ -751,14 +772,13 @@
               x: X,
               y: Y,
               z: Zgrid,
-              surfacecolor: Rgrid, // use radius for vivid bands
+              surfacecolor: surfaceRonly, // radius-only, remapped
               cmin: 0,
-              cmax: rMaxAll,
-              colorscale: darkSurfaceScale, // << no pink
+              cmax: 1, // because rEq is in [0,1]
+              colorscale: darkSurfaceScale,
               showscale: false,
               contours: { z: { show: false } },
               opacity: 1.0,
-              // brighter but not blown out
               lighting: {
                 ambient: 0.9,
                 diffuse: 1.0,
