@@ -533,26 +533,31 @@
           opacity: 1.0,
         };
 
+        // --- super tight framing and close camera (≈5× bigger) ---
         const zReach = Math.max(zThroat - zMinAll, zMaxAll - zThroat);
 
-        // small padding so nothing clips at max radius / length
-        const PAD = 0.08;
-        const xPad = rMaxAll * (1 + PAD);
-        const yPad = rMaxAll * (1 + PAD);
-        const zPad = zReach * (1 + PAD);
+        // tiny padding so nothing clips
+        const PAD = 0.02; // 2% pad
+        const SCALE = 0.22; // camera distance factor (~5× bigger). Tweak 0.18–0.28 if needed.
 
-        // bring the camera MUCH closer so it looks bigger, but still clears the model
-        const Rxz = 1.05 * Math.max(rMaxAll, zReach); // was 1.8
-        const Yorbit = 1.05 * rMaxAll; // was 1.8
+        const xHalf = rMaxAll * (1 + PAD);
+        const yHalf = rMaxAll * (1 + PAD);
+        const zHalf = zReach * (1 + PAD);
+
+        // pull the camera in hard so the model fills the plot
+        const Rxz = SCALE * Math.max(rMaxAll, zReach);
+        const Yorbit = SCALE * rMaxAll;
 
         const scene = {
-          xaxis: { visible: false, range: [-xPad, xPad] },
-          yaxis: { visible: false, range: [-yPad, yPad] },
-          zaxis: { visible: false, range: [-zPad, zPad] },
+          xaxis: { visible: false, range: [-xHalf, xHalf] },
+          yaxis: { visible: false, range: [-yHalf, yHalf] },
+          zaxis: { visible: false, range: [-zHalf, zHalf] },
           aspectmode: "data",
           camera: {
+            // orbit around Y (throat-centered coords already used in Zgrid)
             eye: { x: Rxz, y: Yorbit, z: 0 },
             up: { x: 0, y: 1, z: 0 },
+            projection: { type: "orthographic" }, // makes it appear larger (no perspective shrink)
           },
         };
 
