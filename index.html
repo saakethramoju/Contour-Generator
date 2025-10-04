@@ -353,12 +353,17 @@
     </div>
 
     <div>
-      <div id="plot" style="width: 800px; height: 600px"></div>
       <div
-        id="plot3d"
-        style="width: 800px; height: 600px; margin-top: 20px"
-      ></div>
-      <!-- ADDED -->
+        style="
+          display: flex;
+          flex-direction: row;
+          gap: 20px;
+          align-items: flex-start;
+        "
+      >
+        <div id="plot" style="width: 800px; height: 600px"></div>
+        <div id="plot3d" style="width: 800px; height: 600px"></div>
+      </div>
       <h2>Calculated Values</h2>
       <div id="outputs"></div>
     </div>
@@ -520,11 +525,22 @@
           opacity: 1.0,
         };
 
+        // Compute a sensible initial camera based on current geometry
+        const zMax3D = Math.max(...z);
+        const rMax3D = Math.max(...r);
+        const Rorbit0 = 1.8 * Math.max(rMax3D, zMax3D); // initial camera distance
+        const zEye0 = 0.6 * Rorbit0;
+
         const scene = {
-          xaxis: { title: "X (in)", zeroline: false, showspikes: false },
-          yaxis: { title: "Y (in)", zeroline: false, showspikes: false },
-          zaxis: { title: "Z (axial, in)", zeroline: false, showspikes: false },
-          aspectmode: "data", // equal scaling to avoid distortion
+          xaxis: { visible: false }, // HIDE axes
+          yaxis: { visible: false },
+          zaxis: { visible: false },
+          aspectmode: "data", // preserve real scaling
+          camera: {
+            eye: { x: Rorbit0, y: 0, z: zEye0 },
+            up: { x: 0, y: 0, z: 1 }, // FIX up-vector to stop 180° flips
+            center: { x: 0, y: 0, z: 0 },
+          },
         };
 
         Plotly.newPlot("plot3d", [surf], {
@@ -653,7 +669,7 @@
           rotTimer = null;
         }
 
-        // pick a camera orbit based on current geometry
+        // base orbit from current geometry
         const zMax = (window.currentContour?.z ?? [0]).reduce(
           (a, b) => Math.max(a, b),
           0
@@ -662,18 +678,22 @@
           (a, b) => Math.max(a, b),
           0
         );
-        const Rorbit = 2.2 * Math.max(rMax, zMax); // camera distance
-        const zEye = 0.6 * Rorbit; // slight tilt
+        const Rorbit = 1.8 * Math.max(rMax, zMax); // slightly closer than before
+        const zEye = 0.6 * Rorbit;
 
+        // start spinning: keep UP fixed to avoid camera flipping
         rotTimer = setInterval(() => {
-          rotAngle += 0.02; // speed (radians per tick). Smaller => slower.
+          rotAngle += 0.02; // speed (radians per tick)
           const eye = {
             x: Rorbit * Math.cos(rotAngle),
             y: Rorbit * Math.sin(rotAngle),
             z: zEye,
           };
-          Plotly.relayout("plot3d", { "scene.camera.eye": eye });
-        }, 30); // ~33 fps
+          Plotly.relayout("plot3d", {
+            "scene.camera.eye": eye,
+            "scene.camera.up": { x: 0, y: 0, z: 1 }, // <- keep up fixed
+          });
+        }, 30);
       }
 
       function stopRotation() {
