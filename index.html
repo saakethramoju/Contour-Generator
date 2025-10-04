@@ -790,20 +790,16 @@
 
         // Dark-mode colorscale (many stops so large regions don't look flat)
         const darkSurfaceScale = [
-          [0.0, "#0B1F5E"], // deep navy
-          [0.08, "#123472"],
-          [0.16, "#1B4F9B"],
-          [0.24, "#1F6FEB"], // strong blue
-          [0.32, "#5A95F5"],
-          [0.4, "#9FC0FF"],
-          [0.48, "#E6F0FF"],
-          [0.5, "#FFFFFF"], // white pivot
-          [0.58, "#FFE5E5"],
-          [0.66, "#FFC2C2"],
-          [0.74, "#FF9A9A"],
-          [0.82, "#FF6B6B"],
-          [0.9, "#FF3A3A"],
-          [1.0, "#B8001F"], // deep red
+          [0.0, "#C200FB"],
+          [0.11, "#D704B2"],
+          [0.22, "#E2068D"],
+          [0.33, "#EC0868"],
+          [0.44, "#F41C34"],
+          [0.55, "#FC2F00"],
+          [0.66, "#F45608"],
+          [0.77, "#EC7D10"],
+          [0.88, "#F69D0D"],
+          [1.0, "#FFBC0A"],
         ];
 
         const surf = isDark
@@ -812,10 +808,10 @@
               x: X,
               y: Y,
               z: Zgrid,
-              surfacecolor: surfacecolorDark, // radius-based with axial tint on flats
+              surfacecolor: surfacecolorDark, // radius baseline + axial tint on flats
               cmin: 0,
               cmax: 1,
-              colorscale: darkSurfaceScale,
+              colorscale: darkSurfaceScale, // <-- Coolors palette
               showscale: false,
               contours: { z: { show: false } },
               opacity: 1.0,
