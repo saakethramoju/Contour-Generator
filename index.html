@@ -354,6 +354,11 @@
 
     <div>
       <div id="plot" style="width: 800px; height: 600px"></div>
+      <div
+        id="plot3d"
+        style="width: 800px; height: 600px; margin-top: 20px"
+      ></div>
+      <!-- ADDED -->
       <h2>Calculated Values</h2>
       <div id="outputs"></div>
     </div>
@@ -496,6 +501,40 @@
         );
         window.currentContour = { z, r };
 
+        // ===== 3D solid-of-revolution (ADDED) =====
+        const nTheta = 72; // angular resolution (48–96 is fine)
+        const theta = linspace(0, 2 * Math.PI, nTheta);
+
+        // Grids for surface-of-revolution: X(θ,z)=r(z)cosθ, Y(θ,z)=r(z)sinθ, Z(θ,z)=z
+        const X = theta.map((th) => r.map((ri) => ri * Math.cos(th)));
+        const Y = theta.map((th) => r.map((ri) => ri * Math.sin(th)));
+        const Zgrid = theta.map(() => z.slice());
+
+        const surf = {
+          type: "surface",
+          x: X,
+          y: Y,
+          z: Zgrid,
+          showscale: false,
+          contours: { z: { show: false } },
+          opacity: 1.0,
+        };
+
+        const scene = {
+          xaxis: { title: "X (in)", zeroline: false, showspikes: false },
+          yaxis: { title: "Y (in)", zeroline: false, showspikes: false },
+          zaxis: { title: "Z (axial, in)", zeroline: false, showspikes: false },
+          aspectmode: "data", // equal scaling to avoid distortion
+        };
+
+        Plotly.newPlot("plot3d", [surf], {
+          scene,
+          margin: { l: 0, r: 0, t: 0, b: 0 },
+        });
+
+        // (re)start auto-rotation on every update so timers don't stack
+        startRotation();
+
         const R_ch = Math.sqrt(eps_c) * R_t; // chamber barrel radius
         const rMax = Math.max(...r); // maximum radius across the full contour
         const yAxis = {
@@ -601,6 +640,47 @@
         a.href = url;
         a.download = "contour.csv";
         a.click();
+      }
+
+      // ---- Auto-rotation helpers (ADDED) ----
+      let rotTimer = null;
+      let rotAngle = 0;
+
+      function startRotation() {
+        // clear any previous rotation timer
+        if (rotTimer) {
+          clearInterval(rotTimer);
+          rotTimer = null;
+        }
+
+        // pick a camera orbit based on current geometry
+        const zMax = (window.currentContour?.z ?? [0]).reduce(
+          (a, b) => Math.max(a, b),
+          0
+        );
+        const rMax = (window.currentContour?.r ?? [0]).reduce(
+          (a, b) => Math.max(a, b),
+          0
+        );
+        const Rorbit = 2.2 * Math.max(rMax, zMax); // camera distance
+        const zEye = 0.6 * Rorbit; // slight tilt
+
+        rotTimer = setInterval(() => {
+          rotAngle += 0.02; // speed (radians per tick). Smaller => slower.
+          const eye = {
+            x: Rorbit * Math.cos(rotAngle),
+            y: Rorbit * Math.sin(rotAngle),
+            z: zEye,
+          };
+          Plotly.relayout("plot3d", { "scene.camera.eye": eye });
+        }, 30); // ~33 fps
+      }
+
+      function stopRotation() {
+        if (rotTimer) {
+          clearInterval(rotTimer);
+          rotTimer = null;
+        }
       }
 
       updatePlot();
