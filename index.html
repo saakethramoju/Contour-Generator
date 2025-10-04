@@ -790,21 +790,20 @@
 
         // Dark-mode colorscale (many stops so large regions don't look flat)
         const darkSurfaceScale = [
-          [0.0, "#FF00A1"],
-          [0.06, "#FF2BA8"],
-          [0.12, "#FF55A6"],
-          [0.18, "#FF7E71"],
-          [0.24, "#FF9400"],
-          [0.3, "#FFB200"],
-          [0.36, "#FFD100"],
-          [0.42, "#FFEE00"],
-          [0.5, "#E9FA0F"],
-          [0.58, "#CBFF1E"],
-          [0.66, "#B4FF2B"],
-          [0.74, "#77F7C9"],
-          [0.82, "#46EAE2"],
-          [0.9, "#2BE5E2"],
-          [1.0, "#24DFE2"],
+          [0.0, "#0B1F5E"], // deep navy
+          [0.08, "#123472"],
+          [0.16, "#1B4F9B"],
+          [0.24, "#1F6FEB"], // strong blue
+          [0.32, "#5A95F5"],
+          [0.4, "#9FC0FF"],
+          [0.48, "#E6F0FF"],
+          [0.5, "#FFFFFF"], // white pivot
+          [0.58, "#FFE5E5"],
+          [0.66, "#FFC2C2"],
+          [0.74, "#FF9A9A"],
+          [0.82, "#FF6B6B"],
+          [0.9, "#FF3A3A"],
+          [1.0, "#B8001F"], // deep red
         ];
 
         const surf = isDark
