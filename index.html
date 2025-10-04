@@ -533,21 +533,26 @@
           opacity: 1.0,
         };
 
-        // frame the model around the throat; use names that don't collide
-        // framing (a bit roomier)
         const zReach = Math.max(zThroat - zMinAll, zMaxAll - zThroat);
-        const Rxz = 1.8 * Math.max(rMaxAll, zReach);
-        const Yorbit = 1.8 * rMaxAll;
+
+        // small padding so nothing clips at max radius / length
+        const PAD = 0.08;
+        const xPad = rMaxAll * (1 + PAD);
+        const yPad = rMaxAll * (1 + PAD);
+        const zPad = zReach * (1 + PAD);
+
+        // bring the camera MUCH closer so it looks bigger, but still clears the model
+        const Rxz = 1.05 * Math.max(rMaxAll, zReach); // was 1.8
+        const Yorbit = 1.05 * rMaxAll; // was 1.8
 
         const scene = {
-          xaxis: { visible: false },
-          yaxis: { visible: false },
-          zaxis: { visible: false },
+          xaxis: { visible: false, range: [-xPad, xPad] },
+          yaxis: { visible: false, range: [-yPad, yPad] },
+          zaxis: { visible: false, range: [-zPad, zPad] },
           aspectmode: "data",
           camera: {
-            // y-axis orbit: keep y constant, spin x/z around the (throat-centered) model
             eye: { x: Rxz, y: Yorbit, z: 0 },
-            up: { x: 0, y: 1, z: 0 }, // y is up; prevents 180° flips
+            up: { x: 0, y: 1, z: 0 },
           },
         };
 
