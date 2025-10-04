@@ -562,12 +562,42 @@
           },
         };
 
+        const plot3dEl = document.getElementById("plot3d");
+
         Plotly.newPlot(
-          "plot3d",
+          plot3dEl,
           [surf],
           { scene, margin: { l: 0, r: 0, t: 0, b: 0 } },
-          { responsive: true }
+          {
+            responsive: true,
+            scrollZoom: true, // <--- wheel zoom
+            displaylogo: false, // cleaner toolbar
+            // leave the 3D pan/orbit/zoom tools available in the mode bar
+          }
         );
+
+        // Stop auto-rotation the instant the user changes the camera (pan/zoom/orbit)
+        plot3dEl.on("plotly_relayouting", () => {
+          stopRotation();
+        });
+        plot3dEl.on("plotly_relayout", (e) => {
+          // If the relayout event touched camera or axis ranges, stop rotation
+          if (
+            e &&
+            Object.keys(e).some(
+              (k) =>
+                k.startsWith("scene.camera") ||
+                k.includes("scene.xaxis.range") ||
+                k.includes("scene.yaxis.range") ||
+                k.includes("scene.zaxis.range")
+            )
+          ) {
+            stopRotation();
+          }
+        });
+
+        // Optional: double-click inside the 3D plot to resume autorotation
+        plot3dEl.on("plotly_doubleclick", () => startRotation(Rxz, Yorbit));
 
         // (re)start auto-rotation around y-axis through the throat
         startRotation(Rxz, Yorbit);
