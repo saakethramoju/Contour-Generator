@@ -352,7 +352,7 @@
       </div>
     </div>
 
-    <div>
+    <div style="flex: 1; min-width: 0">
       <div
         id="vizRow"
         style="
@@ -360,7 +360,7 @@
           flex-direction: row;
           gap: 16px;
           align-items: flex-start;
-          max-width: calc(100vw - 420px);
+          width: 100%;
         "
       >
         <!-- leave ~420px for the controls column -->
@@ -521,7 +521,7 @@
         const theta = linspace(0, 2 * Math.PI, nTheta);
         const X = theta.map((th) => r.map((ri) => ri * Math.cos(th)));
         const Y = theta.map((th) => r.map((ri) => ri * Math.sin(th)));
-        const Zgrid = theta.map(() => z.slice());
+        const Zgrid = theta.map(() => z.map((zi) => zi - zThroat));
 
         const surf = {
           type: "surface",
@@ -534,9 +534,10 @@
         };
 
         // frame the model around the throat; use names that don't collide
+        // framing (a bit roomier)
         const zReach = Math.max(zThroat - zMinAll, zMaxAll - zThroat);
-        const Rxz = 1.6 * Math.max(rMaxAll, zReach);
-        const Yorbit = 1.6 * rMaxAll;
+        const Rxz = 1.8 * Math.max(rMaxAll, zReach);
+        const Yorbit = 1.8 * rMaxAll;
 
         const scene = {
           xaxis: { visible: false },
@@ -544,9 +545,9 @@
           zaxis: { visible: false },
           aspectmode: "data",
           camera: {
-            eye: { x: Rxz, y: Yorbit, z: zThroat }, // start +X,+Y, level with throat
-            up: { x: 0, y: 1, z: 0 }, // y is up to prevent flips
-            center: { x: 0, y: 0, z: zThroat }, // look at the throat
+            // y-axis orbit: keep y constant, spin x/z around the (throat-centered) model
+            eye: { x: Rxz, y: Yorbit, z: 0 },
+            up: { x: 0, y: 1, z: 0 }, // y is up; prevents 180° flips
           },
         };
 
@@ -558,7 +559,7 @@
         );
 
         // (re)start auto-rotation around y-axis through the throat
-        startRotation(zThroat, Rxz, Yorbit);
+        startRotation(Rxz, Yorbit);
 
         const R_ch = Math.sqrt(eps_c) * R_t; // chamber barrel radius
         const yAxis = {
@@ -674,7 +675,7 @@
       let rotTimer = null;
       let rotAngle = 0;
 
-      function startRotation(zThroat, Rxz, Yorbit) {
+      function startRotation(Rxz, Yorbit) {
         if (rotTimer) {
           clearInterval(rotTimer);
           rotTimer = null;
@@ -684,12 +685,11 @@
           const eye = {
             x: Rxz * Math.cos(rotAngle),
             y: Yorbit,
-            z: zThroat + Rxz * Math.sin(rotAngle),
+            z: Rxz * Math.sin(rotAngle),
           };
           Plotly.relayout("plot3d", {
             "scene.camera.eye": eye,
             "scene.camera.up": { x: 0, y: 1, z: 0 },
-            "scene.camera.center": { x: 0, y: 0, z: zThroat },
           });
         }, 30);
       }
