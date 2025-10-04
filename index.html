@@ -624,6 +624,7 @@
 
         // ==== THEME VARS FOR PLOTS ====
         const theme = getTheme();
+
         const template = theme === "dark" ? "plotly_dark" : "plotly_white";
         const paperBG =
           getComputedStyle(document.body).getPropertyValue("--bg").trim() ||
@@ -631,7 +632,7 @@
         const plotBG = paperBG; // match paper
 
         // ==== HIGH-CONTRAST PLOT COLORS (dark mode) ====
-        const isDark = theme === "dark";
+        const isDark = getTheme() === "dark";
         const axisColor = isDark ? "#cbd5e1" : undefined; // light slate
         const gridColor = isDark ? "#334155" : undefined; // slate-700
         const zeroColor = isDark ? "#475569" : undefined; // slate-600
@@ -653,23 +654,35 @@
         const Y = theta.map((th) => r.map((ri) => ri * Math.sin(th)));
         const Zgrid = theta.map(() => z.map((zi) => zi - zThroat));
 
-        const surf = {
-          type: "surface",
-          x: X,
-          y: Y,
-          z: Zgrid,
-          showscale: false,
-          contours: { z: { show: false } },
-          opacity: 1.0,
-          colorscale: isDark ? "Turbo" : undefined, // vivid against dark
-          lighting: {
-            ambient: 0.6,
-            diffuse: 0.7,
-            specular: 0.2,
-            roughness: 0.9,
-          },
-          lightposition: { x: 100, y: 0, z: 200 },
-        };
+        const surf = isDark
+          ? {
+              type: "surface",
+              x: X,
+              y: Y,
+              z: Zgrid,
+              showscale: false,
+              contours: { z: { show: false } },
+              opacity: 1.0,
+              // High-contrast for dark mode only:
+              colorscale: "Turbo",
+              lighting: {
+                ambient: 0.9,
+                diffuse: 1.0,
+                specular: 0.4,
+                roughness: 0.7,
+              },
+              lightposition: { x: 150, y: 0, z: 300 },
+            }
+          : {
+              // LIGHT MODE: exactly what you had before (no colors/lighting overrides)
+              type: "surface",
+              x: X,
+              y: Y,
+              z: Zgrid,
+              showscale: false,
+              contours: { z: { show: false } },
+              opacity: 1.0,
+            };
 
         // --- super tight framing and close camera (≈5× bigger) ---
         const zReach = Math.max(zThroat - zMinAll, zMaxAll - zThroat);
@@ -702,23 +715,40 @@
 
         const plot3dEl = document.getElementById("plot3d");
 
-        Plotly.newPlot(
-          plot3dEl,
-          [surf],
-          {
-            scene,
-            margin: { l: 0, r: 0, t: 0, b: 0 },
-            paper_bgcolor: paperBG,
-            plot_bgcolor: plotBG,
-            template,
-            font: baseFont,
-          },
-          {
-            responsive: true,
-            scrollZoom: true,
-            displaylogo: false,
-          }
-        );
+        const plot3dLayout = isDark
+          ? {
+              scene,
+              margin: { l: 0, r: 0, t: 0, b: 0 },
+              paper_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#0b0f19",
+              plot_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#0b0f19",
+              template: "plotly_dark",
+              font: {
+                family:
+                  getComputedStyle(document.body)
+                    .getPropertyValue("--font")
+                    .trim() ||
+                  "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+                size: 13,
+                color: "#cbd5e1",
+              },
+            }
+          : {
+              // LIGHT MODE: unchanged look
+              scene,
+              margin: { l: 0, r: 0, t: 0, b: 0 },
+            };
+
+        Plotly.newPlot(plot3dEl, [surf], plot3dLayout, {
+          responsive: true,
+          scrollZoom: true,
+          displaylogo: false,
+        });
 
         // Stop auto-rotation the instant the user changes the camera (pan/zoom/orbit)
         plot3dEl.on("plotly_relayouting", () => {
@@ -756,6 +786,68 @@
           title: "Axial Length (in)",
           range: [0, 1.05 * zMaxAll],
         };
+
+        const plot2dLayout = isDark
+          ? {
+              xaxis: {
+                ...xAxis,
+                tickfont: { color: "#cbd5e1" },
+                titlefont: { color: "#cbd5e1" },
+                gridcolor: "#334155",
+                zerolinecolor: "#475569",
+                linecolor: "#94a3b8",
+                linewidth: 1,
+                mirror: true,
+              },
+              yaxis: {
+                ...yAxis,
+                tickfont: { color: "#cbd5e1" },
+                titlefont: { color: "#cbd5e1" },
+                gridcolor: "#334155",
+                zerolinecolor: "#475569",
+                linecolor: "#94a3b8",
+                linewidth: 1,
+                mirror: true,
+              },
+              showlegend: true,
+              legend: {
+                font: {
+                  family:
+                    getComputedStyle(document.body)
+                      .getPropertyValue("--font")
+                      .trim() ||
+                    "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+                  size: 13,
+                  color: "#cbd5e1",
+                },
+              },
+              margin: { l: 40, r: 10, t: 20, b: 40 },
+              paper_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#0b0f19",
+              plot_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#0b0f19",
+              template: "plotly_dark",
+              font: {
+                family:
+                  getComputedStyle(document.body)
+                    .getPropertyValue("--font")
+                    .trim() ||
+                  "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+                size: 13,
+                color: "#cbd5e1",
+              },
+            }
+          : {
+              // LIGHT MODE: unchanged
+              xaxis: xAxis,
+              yaxis: yAxis,
+              showlegend: true,
+              margin: { l: 40, r: 10, t: 20, b: 40 },
+            };
 
         Plotly.newPlot(
           "plot",
@@ -803,35 +895,7 @@
               name: "Nozzle",
             },
           ],
-          {
-            xaxis: {
-              ...xAxis,
-              tickfont: { color: axisColor },
-              titlefont: { color: axisColor },
-              gridcolor: gridColor,
-              zerolinecolor: zeroColor,
-              linecolor: lineColor,
-              linewidth: 1,
-              mirror: true,
-            },
-            yaxis: {
-              ...yAxis,
-              tickfont: { color: axisColor },
-              titlefont: { color: axisColor },
-              gridcolor: gridColor,
-              zerolinecolor: zeroColor,
-              linecolor: lineColor,
-              linewidth: 1,
-              mirror: true,
-            },
-            showlegend: true,
-            legend: { font: baseFont },
-            margin: { l: 40, r: 10, t: 20, b: 40 },
-            paper_bgcolor: paperBG,
-            plot_bgcolor: plotBG,
-            template,
-            font: baseFont,
-          },
+          plot2dLayout,
           { responsive: true }
         );
 
