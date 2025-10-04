@@ -630,6 +630,17 @@
           (theme === "dark" ? "#0b0f19" : "#ffffff");
         const plotBG = paperBG; // match paper
 
+        // ==== HIGH-CONTRAST PLOT COLORS (dark mode) ====
+        const isDark = theme === "dark";
+        const axisColor = isDark ? "#cbd5e1" : undefined; // light slate
+        const gridColor = isDark ? "#334155" : undefined; // slate-700
+        const zeroColor = isDark ? "#475569" : undefined; // slate-600
+        const lineColor = isDark ? "#94a3b8" : undefined; // slate-400
+        const fontFamily =
+          getComputedStyle(document.body).getPropertyValue("--font").trim() ||
+          "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif";
+        const baseFont = { family: fontFamily, size: 13, color: axisColor };
+
         // ---- shared extents (unique names so they won't collide) ----
         const zMinAll = Math.min(...z);
         const zMaxAll = Math.max(...z);
@@ -650,6 +661,14 @@
           showscale: false,
           contours: { z: { show: false } },
           opacity: 1.0,
+          colorscale: isDark ? "Turbo" : undefined, // vivid against dark
+          lighting: {
+            ambient: 0.6,
+            diffuse: 0.7,
+            specular: 0.2,
+            roughness: 0.9,
+          },
+          lightposition: { x: 100, y: 0, z: 200 },
         };
 
         // --- super tight framing and close camera (≈5× bigger) ---
@@ -692,6 +711,7 @@
             paper_bgcolor: paperBG,
             plot_bgcolor: plotBG,
             template,
+            font: baseFont,
           },
           {
             responsive: true,
@@ -784,13 +804,33 @@
             },
           ],
           {
-            xaxis: xAxis,
-            yaxis: yAxis,
+            xaxis: {
+              ...xAxis,
+              tickfont: { color: axisColor },
+              titlefont: { color: axisColor },
+              gridcolor: gridColor,
+              zerolinecolor: zeroColor,
+              linecolor: lineColor,
+              linewidth: 1,
+              mirror: true,
+            },
+            yaxis: {
+              ...yAxis,
+              tickfont: { color: axisColor },
+              titlefont: { color: axisColor },
+              gridcolor: gridColor,
+              zerolinecolor: zeroColor,
+              linecolor: lineColor,
+              linewidth: 1,
+              mirror: true,
+            },
             showlegend: true,
+            legend: { font: baseFont },
             margin: { l: 40, r: 10, t: 20, b: 40 },
             paper_bgcolor: paperBG,
             plot_bgcolor: plotBG,
             template,
+            font: baseFont,
           },
           { responsive: true }
         );
