@@ -849,6 +849,26 @@
               margin: { l: 40, r: 10, t: 20, b: 40 },
             };
 
+        const colorsLight = {
+          chamber: "#26a9e0", // (your original)
+          entrance: "#e61950",
+          converging: "#f7a829",
+          throat: "#fa791b",
+          diverging: "#510c7c",
+          nozzle: "#092843",
+        };
+
+        const colorsDark = {
+          chamber: "#22d3ee", // bright cyan
+          entrance: "#ff4d6d", // hot pink/red
+          converging: "#fde047", // vivid yellow
+          throat: "#fb923c", // bright orange
+          diverging: "#c084fc", // bright violet
+          nozzle: "#60a5fa", // bright blue
+        };
+
+        const C = isDark ? colorsDark : colorsLight;
+
         Plotly.newPlot(
           "plot",
           [
@@ -856,42 +876,42 @@
               x: f1z,
               y: f1r,
               mode: "lines",
-              line: { width: 3, color: "#26a9e0" }, // light blue
+              line: { width: 3, color: C.chamber },
               name: "Chamber",
             },
             {
               x: f2z,
               y: f2r,
               mode: "lines",
-              line: { width: 3, color: "#e61950" }, // red
+              line: { width: 3, color: C.entrance },
               name: "Entrance Arc",
             },
             {
               x: f3z,
               y: f3r,
               mode: "lines",
-              line: { width: 3, color: "#f7a829" }, // orange
+              line: { width: 3, color: C.converging },
               name: "Converging Linear",
             },
             {
               x: f4z,
               y: f4r,
               mode: "lines",
-              line: { width: 3, color: "#fa791b" }, // darker orange
+              line: { width: 3, color: C.throat },
               name: "Throat Arc",
             },
             {
               x: f5z,
               y: f5r,
               mode: "lines",
-              line: { width: 3, color: "#510c7c" }, // purple
+              line: { width: 3, color: C.diverging },
               name: "Diverging Entrance",
             },
             {
               x: f6z,
               y: f6r,
               mode: "lines",
-              line: { width: 3, color: "#092843" }, // navy blue
+              line: { width: 3, color: C.nozzle },
               name: "Nozzle",
             },
           ],
