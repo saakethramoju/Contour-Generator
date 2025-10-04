@@ -655,6 +655,15 @@
         const Zgrid = theta.map(() => z.map((zi) => zi - zThroat));
         const Rgrid = theta.map(() => r.slice()); // same shape as X/Y/Z
 
+        // High-contrast (no pink) dark-mode colorscale: blue → cyan → lime → yellow → white
+        const darkSurfaceScale = [
+          [0.0, "#0ea5e9"], // blue
+          [0.25, "#06b6d4"], // cyan
+          [0.5, "#22c55e"], // lime/green
+          [0.75, "#fde047"], // yellow
+          [1.0, "#ffffff"], // white highlight
+        ];
+
         const surf = isDark
           ? {
               type: "surface",
@@ -664,23 +673,17 @@
               surfacecolor: Rgrid, // use radius for vivid bands
               cmin: 0,
               cmax: rMaxAll,
-              colorscale: [
-                [0.0, "#00E5FF"], // cyan
-                [0.2, "#00FF88"], // neon green
-                [0.4, "#FDEA45"], // yellow
-                [0.6, "#FF8A00"], // orange
-                [0.8, "#FF4D6D"], // hot pink/red
-                [1.0, "#C084FC"], // violet
-              ],
+              colorscale: darkSurfaceScale, // << no pink
               showscale: false,
               contours: { z: { show: false } },
               opacity: 1.0,
+              // brighter but not blown out
               lighting: {
-                ambient: 0.95,
+                ambient: 0.9,
                 diffuse: 1.0,
-                specular: 0.5,
-                roughness: 0.6,
-                fresnel: 0.1,
+                specular: 0.45,
+                roughness: 0.65,
+                fresnel: 0.08,
               },
               lightposition: { x: 150, y: 0, z: 300 },
             }
