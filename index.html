@@ -901,6 +901,32 @@
           displaylogo: false,
         });
 
+        // Stop auto-rotation the instant the user changes the camera (pan/zoom/orbit)
+        plot3dEl.on("plotly_relayouting", () => {
+          stopRotation();
+        });
+        plot3dEl.on("plotly_relayout", (e) => {
+          // If the relayout event touched camera or axis ranges, stop rotation
+          if (
+            e &&
+            Object.keys(e).some(
+              (k) =>
+                k.startsWith("scene.camera") ||
+                k.includes("scene.xaxis.range") ||
+                k.includes("scene.yaxis.range") ||
+                k.includes("scene.zaxis.range")
+            )
+          ) {
+            stopRotation();
+          }
+        });
+
+        // Optional: double-click inside the 3D plot to resume autorotation
+        plot3dEl.on("plotly_doubleclick", () => startRotation(Rxz, Yorbit));
+
+        // (re)start auto-rotation around y-axis through the throat
+        startRotation(Rxz, Yorbit);
+
         const R_ch = Math.sqrt(eps_c) * R_t; // chamber barrel radius
         const yAxis = {
           title: "Radial Length (in)",
@@ -1342,6 +1368,36 @@
         a.download = "nozzle_surface.stl";
         a.click();
         URL.revokeObjectURL(url);
+      }
+
+      // ---- Auto-rotation helpers (ADDED) ----
+      let rotTimer = null;
+      let rotAngle = 0;
+
+      function startRotation(Rxz, Yorbit) {
+        if (rotTimer) {
+          clearInterval(rotTimer);
+          rotTimer = null;
+        }
+        rotTimer = setInterval(() => {
+          rotAngle += 0.02; // speed
+          const eye = {
+            x: Rxz * Math.cos(rotAngle),
+            y: Yorbit,
+            z: Rxz * Math.sin(rotAngle),
+          };
+          Plotly.relayout("plot3d", {
+            "scene.camera.eye": eye,
+            "scene.camera.up": { x: 0, y: 1, z: 0 },
+          });
+        }, 30);
+      }
+
+      function stopRotation() {
+        if (rotTimer) {
+          clearInterval(rotTimer);
+          rotTimer = null;
+        }
       }
 
       updatePlot();
