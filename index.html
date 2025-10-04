@@ -4,11 +4,18 @@
     <title>Nozzle Contour Generator</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
+      .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 6px 0 10px 0; /* small breathing room */
+      }
+
+      .byline {
+        margin: 0; /* keep the row tight */
+      }
+
       .theme-toggle {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        z-index: 1000;
         border: 1px solid var(--border);
         background: var(--panel);
         color: var(--text);
@@ -124,25 +131,14 @@
     </style>
   </head>
   <body data-theme="dark">
-    <button
-      id="themeToggle"
-      style="
-        margin-left: 8px;
-        border: 1px solid var(--border);
-        background: var(--panel);
-        color: var(--text);
-        padding: 6px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-      "
-    >
-      Light mode
-    </button>
     <div>
       <h1 style="display: flex; align-items: center; gap: 12px">
         Nozzle Contour Generator
       </h1>
-      <p><em>By Saaketh Ramoju</em></p>
+      <div class="meta-row">
+        <p class="byline"><em>By Saaketh Ramoju</em></p>
+        <button id="themeToggle" class="theme-toggle">Light mode</button>
+      </div>
 
       <div id="controls">
         <label
