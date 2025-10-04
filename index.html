@@ -736,34 +736,75 @@
         const Zgrid = theta.map(() => z.map((zi) => zi - zThroat));
         const Rgrid = theta.map(() => r.slice()); // same shape as X/Y/Z
 
-        // ----- radius-only field with better contrast -----
+        // ----- radius-dominant scalar with gentle axial tint on flat sections -----
         const rMin = Math.min(...r),
           rMax = Math.max(...r);
-        const rNorm1D = r.map((v) => (v - rMin) / Math.max(1e-9, rMax - rMin));
+        const rNorm = r.map((v) => (v - rMin) / Math.max(1e-9, rMax - rMin));
 
-        // Non-linear remap to avoid "flat" regions (radius-only!)
-        const gamma = 0.65; // tweak 0.5–0.9; lower = more contrast
-        const rEq = rNorm1D.map((t) => Math.pow(t, gamma));
+        // Nonlinear remap to boost mid-range contrast
+        const gamma = 0.7; // 0.55–0.85 is a good tuning range
+        const rEq = rNorm.map((t) => Math.pow(t, gamma));
 
-        // Expand to 2D for Plotly surfacecolor
-        const surfaceRonly = theta.map(() => rEq);
+        // Local slope |dr/dz| to detect flat regions (≈ chamber)
+        const rSlope = r.map((_, i) => {
+          if (i === 0)
+            return Math.abs((r[1] - r[0]) / Math.max(1e-9, z[1] - z[0]));
+          if (i === r.length - 1)
+            return Math.abs(
+              (r[i] - r[i - 1]) / Math.max(1e-9, z[i] - z[i - 1])
+            );
+          const s1 = (r[i] - r[i - 1]) / Math.max(1e-9, z[i] - z[i - 1]);
+          const s2 = (r[i + 1] - r[i]) / Math.max(1e-9, z[i + 1] - z[i]);
+          return Math.abs(0.5 * (s1 + s2));
+        });
 
-        // Colorscale: magenta → orange → yellow → lime → cyan with extra mid stops
+        // Weight: 1 on very flat regions, 0 on sloped ones (smoothly)
+        const SLOPE_FLAT = 1e-3; // slope threshold where we start treating as "flat"
+        const SLOPE_STEEP = 5e-3; // slope considered definitely "not flat"
+        function smoothstep(edge0, edge1, x) {
+          const t = Math.min(
+            1,
+            Math.max(0, (x - edge0) / Math.max(1e-9, edge1 - edge0))
+          );
+          return t * t * (3 - 2 * t);
+        }
+        const wFlat = rSlope.map(
+          (s) => 1 - smoothstep(SLOPE_FLAT, SLOPE_STEEP, s)
+        ); // ~1 in chamber
+
+        // Gentle axial gradient only where flat
+        const zMin = Math.min(...z),
+          zMax = Math.max(...z);
+        const zNorm = z.map((zz) => (zz - zMin) / Math.max(1e-9, zMax - zMin));
+
+        // Blend: keep radius as the base, add a small z tint on flat areas
+        const AXIAL_AMOUNT = 0.25; // max added influence of z in flat sections (0.15–0.35)
+        const color1D = rEq.map((rv, i) => {
+          // center z around 0.5 so it tints up/down around the base radius color
+          const tint = (zNorm[i] - 0.5) * AXIAL_AMOUNT * wFlat[i];
+          return Math.min(1, Math.max(0, rv + tint));
+        });
+
+        // Expand to 2D for Plotly
+        const surfacecolorDark = theta.map(() => color1D);
+
+        // Dark-mode colorscale (many stops so large regions don't look flat)
         const darkSurfaceScale = [
-          [0.0, "#FF00A1"], // magenta
-          [0.07, "#FF2BA8"],
-          [0.14, "#FF55A6"],
-          [0.21, "#FF7E71"], // bridging toward orange
-          [0.28, "#FF9400"], // orange
-          [0.35, "#FFB200"],
-          [0.42, "#FFD100"],
-          [0.5, "#FFEE00"], // yellow
-          [0.58, "#E9FA0F"],
-          [0.66, "#CBFF1E"],
-          [0.74, "#B4FF2B"], // lime
-          [0.82, "#77F7C9"],
-          [0.9, "#46EAE2"],
-          [1.0, "#24DFE2"], // cyan
+          [0.0, "#FF00A1"],
+          [0.06, "#FF2BA8"],
+          [0.12, "#FF55A6"],
+          [0.18, "#FF7E71"],
+          [0.24, "#FF9400"],
+          [0.3, "#FFB200"],
+          [0.36, "#FFD100"],
+          [0.42, "#FFEE00"],
+          [0.5, "#E9FA0F"],
+          [0.58, "#CBFF1E"],
+          [0.66, "#B4FF2B"],
+          [0.74, "#77F7C9"],
+          [0.82, "#46EAE2"],
+          [0.9, "#2BE5E2"],
+          [1.0, "#24DFE2"],
         ];
 
         const surf = isDark
@@ -772,9 +813,9 @@
               x: X,
               y: Y,
               z: Zgrid,
-              surfacecolor: surfaceRonly, // radius-only, remapped
+              surfacecolor: surfacecolorDark, // radius-based with axial tint on flats
               cmin: 0,
-              cmax: 1, // because rEq is in [0,1]
+              cmax: 1,
               colorscale: darkSurfaceScale,
               showscale: false,
               contours: { z: { show: false } },
