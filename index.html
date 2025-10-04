@@ -481,24 +481,12 @@
             <label style="display: flex; align-items: center; gap: 8px">
               <span>Wall Thickness (in):</span>
               <input
-                id="wall_t"
-                type="range"
-                min="0"
-                max="1"
-                step="0.001"
-                value="0.1"
-                oninput="syncInput('wall_t')"
-                style="width: 180px"
-              />
-              <input
-                id="wall_t_num"
+                id="wall_t_val"
                 type="number"
                 min="0"
-                max="1"
                 step="0.001"
-                value="0.1"
-                oninput="syncSlider('wall_t')"
-                style="width: 80px"
+                value="0.100"
+                style="width: 100px"
               />
             </label>
 
@@ -1037,22 +1025,25 @@
         a.click();
       }
 
-      // === STL EXPORT (shell with outward thickness only; inner = the plotted contour) ===
+      // === STL EXPORT: outward-only thickness; inner surface is exactly the original contour; NO END CAPS ===
       function downloadSTL() {
         if (!window.currentContour) return;
 
         const { z, r, zThroat } = window.currentContour;
         const t =
-          parseFloat(document.getElementById("wall_t").value || "0") || 0;
+          Math.max(
+            0,
+            parseFloat(document.getElementById("wall_t_val").value || "0")
+          ) || 0;
 
-        // Revolve resolution (increase for smoother STL / larger file)
+        // Smoother revolve -> bigger file. 180 is a good default.
         const nTheta = 180;
         const twoPi = Math.PI * 2;
 
-        // Center along Z like the 3D plot
+        // Center along Z same as 3D plot
         const zi = z.map((zz) => zz - zThroat);
-        const riInner = r.slice(); // inner stays exactly as plotted
-        const riOuter = r.map((rv) => rv + t); // thickness added outward only
+        const riInner = r.slice(); // inner is EXACTLY the plotted contour
+        const riOuter = r.map((rv) => rv + t); // thickness only added outward (radially)
 
         const facets = [];
 
@@ -1069,17 +1060,22 @@
           const len = Math.hypot(nx, ny, nz) || 1;
           return [nx / len, ny / len, nz / len];
         }
-
-        function addTri(v0, v1, v2, flip = false) {
-          // flip = true reverses the winding (useful for inner surface)
-          const a = v0,
-            b = flip ? v2 : v1,
-            c = flip ? v1 : v2;
-          const n = normal(a, b, c);
-          facets.push([n, a, b, c]);
+        function addTri(v0, v1, v2) {
+          const n = normal(v0, v1, v2);
+          facets.push([n, v0, v1, v2]);
+        }
+        function addTriFlipped(v0, v1, v2) {
+          // reverse winding (use for inner surface so normals face OUT of the solid)
+          addTri(v0, v2, v1);
         }
 
-        // Side walls: outer (normal outward), inner (reverse winding so normals face material)
+        // Helper: guard against degenerate ring segments (nearly zero radius)
+        const EPS = 1e-9;
+        function segmentValid(r0, r1) {
+          return Math.abs(r0) > EPS || Math.abs(r1) > EPS;
+        }
+
+        // === Build side surfaces only (no caps) ===
         for (let tIdx = 0; tIdx < nTheta; tIdx++) {
           const th0 = (tIdx * twoPi) / nTheta;
           const th1 = ((tIdx + 1) * twoPi) / nTheta;
@@ -1092,80 +1088,39 @@
             const z0 = zi[i],
               z1 = zi[i + 1];
 
-            // --- Outer surface ---
+            // ---- OUTER SURFACE (normals outward) ----
             const r0o = riOuter[i],
               r1o = riOuter[i + 1];
-            const v00o = [r0o * c0, r0o * s0, z0];
-            const v01o = [r0o * c1, r0o * s1, z0];
-            const v10o = [r1o * c0, r1o * s0, z1];
-            const v11o = [r1o * c1, r1o * s1, z1];
+            if (segmentValid(r0o, r1o)) {
+              const v00o = [r0o * c0, r0o * s0, z0];
+              const v01o = [r0o * c1, r0o * s1, z0];
+              const v10o = [r1o * c0, r1o * s0, z1];
+              const v11o = [r1o * c1, r1o * s1, z1];
 
-            addTri(v00o, v01o, v11o);
-            addTri(v00o, v11o, v10o);
+              // Consistent winding so normals point radially outward
+              addTri(v00o, v01o, v11o);
+              addTri(v00o, v11o, v10o);
+            }
 
-            // --- Inner surface (reverse winding so it faces "outward" from material) ---
+            // ---- INNER SURFACE (reverse winding so normals point OUT of the solid i.e., toward the cavity) ----
             const r0i = riInner[i],
               r1i = riInner[i + 1];
-            const v00i = [r0i * c0, r0i * s0, z0];
-            const v01i = [r0i * c1, r0i * s1, z0];
-            const v10i = [r1i * c0, r1i * s0, z1];
-            const v11i = [r1i * c1, r1i * s1, z1];
+            if (segmentValid(r0i, r1i)) {
+              const v00i = [r0i * c0, r0i * s0, z0];
+              const v01i = [r0i * c1, r0i * s1, z0];
+              const v10i = [r1i * c0, r1i * s0, z1];
+              const v11i = [r1i * c1, r1i * s1, z1];
 
-            addTri(v00i, v11i, v01i, true);
-            addTri(v00i, v10i, v11i, true);
+              // Flip winding relative to outer so normals face into the hollow (correct "outward from solid")
+              addTriFlipped(v00i, v01i, v11i);
+              addTriFlipped(v00i, v11i, v10i);
+            }
           }
         }
 
-        // Annular rims at both ends keep the shell manifold
-        // Start rim @ i = 0  (normal ~ -Z)
-        {
-          const i = 0;
-          for (let tIdx = 0; tIdx < nTheta; tIdx++) {
-            const th0 = (tIdx * twoPi) / nTheta;
-            const th1 = ((tIdx + 1) * twoPi) / nTheta;
-            const c0 = Math.cos(th0),
-              s0 = Math.sin(th0);
-            const c1 = Math.cos(th1),
-              s1 = Math.sin(th1);
-
-            const z0 = zi[i];
-            const ro = riOuter[i],
-              ri = riInner[i];
-
-            const o0 = [ro * c0, ro * s0, z0];
-            const o1 = [ro * c1, ro * s1, z0];
-            const i0 = [ri * c0, ri * s0, z0];
-            const i1 = [ri * c1, ri * s1, z0];
-
-            addTri(o0, i1, o1);
-            addTri(o0, i0, i1);
-          }
-        }
-
-        // End rim @ i = zi.length - 1  (normal ~ +Z)
-        {
-          const i = zi.length - 1;
-          for (let tIdx = 0; tIdx < nTheta; tIdx++) {
-            const th0 = (tIdx * twoPi) / nTheta;
-            const th1 = ((tIdx + 1) * twoPi) / nTheta;
-            const c0 = Math.cos(th0),
-              s0 = Math.sin(th0);
-            const c1 = Math.cos(th1),
-              s1 = Math.sin(th1);
-
-            const z1 = zi[i];
-            const ro = riOuter[i],
-              ri = riInner[i];
-
-            const o0 = [ro * c0, ro * s0, z1];
-            const o1 = [ro * c1, ro * s1, z1];
-            const i0 = [ri * c0, ri * s0, z1];
-            const i1 = [ri * c1, ri * s1, z1];
-
-            addTri(o0, o1, i1);
-            addTri(o0, i1, i0);
-          }
-        }
+        // NOTE: We intentionally do NOT add end-caps.
+        // This keeps the shell open at both ends and avoids rim-normal confusion in CAD/slicers.
+        // If you later want a closed, watertight solid, we can add properly-oriented annular rims.
 
         // ASCII STL
         let stl = "solid nozzle_shell\n";
