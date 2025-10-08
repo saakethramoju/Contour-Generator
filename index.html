@@ -923,6 +923,7 @@
                 linecolor: "#94a3b8",
                 linewidth: 1,
                 mirror: true,
+                automargin: true,
               },
               yaxis: {
                 ...yAxis,
@@ -933,9 +934,17 @@
                 linecolor: "#94a3b8",
                 linewidth: 1,
                 mirror: true,
+                automargin: true,
               },
               showlegend: true,
               legend: {
+                orientation: "h",
+                x: 0.5,
+                xanchor: "center",
+                y: -0.18, // below the plotting area
+                yanchor: "top",
+                bgcolor: "rgba(0,0,0,0)",
+                borderwidth: 0,
                 font: {
                   family:
                     getComputedStyle(document.body)
@@ -946,7 +955,7 @@
                   color: "#cbd5e1",
                 },
               },
-              margin: { l: 40, r: 10, t: 20, b: 40 },
+              margin: { l: 40, r: 10, t: 16, b: 90 }, // extra bottom space for legend
               paper_bgcolor:
                 getComputedStyle(document.body)
                   .getPropertyValue("--bg")
@@ -967,11 +976,19 @@
               },
             }
           : {
-              // LIGHT MODE: unchanged
-              xaxis: xAxis,
-              yaxis: yAxis,
+              xaxis: { ...xAxis, automargin: true },
+              yaxis: { ...yAxis, automargin: true },
               showlegend: true,
-              margin: { l: 40, r: 10, t: 20, b: 40 },
+              legend: {
+                orientation: "h",
+                x: 0.5,
+                xanchor: "center",
+                y: -0.18, // below the plotting area
+                yanchor: "top",
+                bgcolor: "rgba(0,0,0,0)",
+                borderwidth: 0,
+              },
+              margin: { l: 40, r: 10, t: 16, b: 90 }, // extra bottom space for legend
             };
 
         const colorsLight = {
