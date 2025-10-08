@@ -489,13 +489,17 @@
         style="
           display: flex;
           flex-direction: row;
-          gap: 16px;
+          gap: 24px; /* adds breathing room between 2D & 3D */
           align-items: flex-start;
           width: 100%;
+          margin-top: 40px; /* pushes both plots down below author line */
         "
       >
         <!-- leave ~420px for the controls column -->
-        <div id="plot" style="flex: 1; min-width: 0; height: 520px"></div>
+        <div
+          id="plot"
+          style="flex: 1.15; min-width: 0; height: 520px; margin-left: -20px"
+        ></div>
         <!-- 3D column: plot on top, STL panel underneath -->
         <div
           id="plot3dCol"
