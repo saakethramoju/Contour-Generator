@@ -94,14 +94,14 @@
         width: 70px;
       }
       #outputs {
-        margin-top: 20px;
+        margin-top: 12px;
         font-size: 14px;
       }
       h1 {
         margin-bottom: 0;
       }
       h2 {
-        margin-top: 40px;
+        margin-top: 16px;
         margin-bottom: 10px;
       }
     </style>
@@ -489,17 +489,24 @@
         style="
           display: flex;
           flex-direction: row;
-          gap: 24px; /* adds breathing room between 2D & 3D */
+          gap: 40px; /* more breathing room between 2D & 3D */
           align-items: flex-start;
           width: 100%;
-          margin-top: 40px; /* pushes both plots down below author line */
+          margin-top: 56px; /* start the plots below the byline */
         "
       >
         <!-- leave ~420px for the controls column -->
         <div
           id="plot"
-          style="flex: 1.15; min-width: 0; height: 520px; margin-left: -20px"
+          style="
+            flex: 1.25;
+            min-width: 0;
+            height: 520px;
+            margin-left: -160px;
+            z-index: 1;
+          "
         ></div>
+
         <!-- 3D column: plot on top, STL panel underneath -->
         <div
           id="plot3dCol"
@@ -959,7 +966,8 @@
                   color: "#cbd5e1",
                 },
               },
-              margin: { l: 20, r: 36, t: 60, b: 90 },
+              margin: { l: 20, r: 56, t: 60, b: 80 }, // left=more width; right=clear the 3D; top=lower; bottom=legend room
+
               paper_bgcolor:
                 getComputedStyle(document.body)
                   .getPropertyValue("--bg")
@@ -992,7 +1000,7 @@
                 bgcolor: "rgba(0,0,0,0)",
                 borderwidth: 0,
               },
-              margin: { l: 20, r: 36, t: 60, b: 90 },
+              margin: { l: 20, r: 56, t: 60, b: 80 }, // left=more width; right=clear the 3D; top=lower; bottom=legend room
             };
 
         const colorsLight = {
