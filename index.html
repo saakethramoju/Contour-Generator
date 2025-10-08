@@ -94,15 +94,15 @@
         width: 70px;
       }
       #outputs {
-        margin-top: 12px;
+        margin-top: 6px;
         font-size: 14px;
       }
       h1 {
         margin-bottom: 0;
       }
       h2 {
-        margin-top: 16px;
-        margin-bottom: 10px;
+        margin-top: 8px;
+        margin-bottom: 8px;
       }
     </style>
 
@@ -489,7 +489,7 @@
         style="
           display: flex;
           flex-direction: row;
-          gap: 40px; /* more breathing room between 2D & 3D */
+          gap: 48px; /* more breathing room between 2D & 3D */
           align-items: flex-start;
           width: 100%;
           margin-top: 56px; /* start the plots below the byline */
@@ -502,7 +502,7 @@
             flex: 1.25;
             min-width: 0;
             height: 520px;
-            margin-left: -160px;
+            margin-left: -80px;
             z-index: 1;
           "
         ></div>
@@ -966,7 +966,7 @@
                   color: "#cbd5e1",
                 },
               },
-              margin: { l: 20, r: 56, t: 60, b: 80 }, // left=more width; right=clear the 3D; top=lower; bottom=legend room
+              margin: { l: 28, r: 64, t: 60, b: 80 },
 
               paper_bgcolor:
                 getComputedStyle(document.body)
@@ -1000,7 +1000,7 @@
                 bgcolor: "rgba(0,0,0,0)",
                 borderwidth: 0,
               },
-              margin: { l: 20, r: 56, t: 60, b: 80 }, // left=more width; right=clear the 3D; top=lower; bottom=legend room
+              margin: { l: 28, r: 64, t: 60, b: 80 },
             };
 
         const colorsLight = {
