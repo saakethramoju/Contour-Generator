@@ -599,6 +599,10 @@
         );
       }
 
+      // --- persist view state (add this once, above updatePlot) ---
+      let lastCam3D = null; // stores 3D camera between redraws
+      let last2D = { xr: null, yr: null }; // stores 2D x/y ranges between redraws
+
       function updatePlot() {
         let b_or_c = document.getElementById("b_or_c").value;
         let R_t = getVal("R_t");
@@ -906,11 +910,34 @@
               margin: { l: 0, r: 0, t: 0, b: 0 },
             };
 
-        Plotly.newPlot(plot3dEl, [surf], plot3dLayout, {
+        // Reuse the previous camera if we have one
+        if (lastCam3D) {
+          plot3dLayout.scene.camera = lastCam3D;
+        }
+
+        // Update without resetting interactions
+        Plotly.react(plot3dEl, [surf], plot3dLayout, {
           responsive: true,
           scrollZoom: true,
           displaylogo: false,
         });
+
+        // Attach once to record the latest camera after any user orbit/pan/zoom
+        if (!plot3dEl._camListenerAttached) {
+          plot3dEl.on("plotly_relayout", () => {
+            if (
+              plot3dEl.layout &&
+              plot3dEl.layout.scene &&
+              plot3dEl.layout.scene.camera
+            ) {
+              // deep copy to avoid mutation by Plotly
+              lastCam3D = JSON.parse(
+                JSON.stringify(plot3dEl.layout.scene.camera)
+              );
+            }
+          });
+          plot3dEl._camListenerAttached = true;
+        }
 
         const R_ch = Math.sqrt(eps_c) * R_t; // chamber barrel radius
         const yAxis = {
@@ -1023,8 +1050,17 @@
 
         const C = isDark ? colorsDark : colorsLight;
 
-        Plotly.newPlot(
-          "plot",
+        const plot2dEl = document.getElementById("plot");
+
+        // If the user had zoomed/panned, reuse their ranges
+        if (last2D.xr && last2D.yr) {
+          plot2dLayout.xaxis.range = last2D.xr.slice();
+          plot2dLayout.yaxis.range = last2D.yr.slice();
+        }
+
+        // Update without resetting interactions
+        Plotly.react(
+          plot2dEl,
           [
             {
               x: f1z,
@@ -1072,6 +1108,19 @@
           plot2dLayout,
           { responsive: true }
         );
+
+        // Attach once to capture new ranges after user interactions
+        if (!plot2dEl._rangeListenerAttached) {
+          plot2dEl.on("plotly_relayout", (ev) => {
+            const x0 = ev["xaxis.range[0]"],
+              x1 = ev["xaxis.range[1]"];
+            const y0 = ev["yaxis.range[0]"],
+              y1 = ev["yaxis.range[1]"];
+            if (x0 !== undefined && x1 !== undefined) last2D.xr = [x0, x1];
+            if (y0 !== undefined && y1 !== undefined) last2D.yr = [y0, y1];
+          });
+          plot2dEl._rangeListenerAttached = true;
+        }
 
         // --- Calculations ---
         let At = Math.PI * R_t ** 2;
