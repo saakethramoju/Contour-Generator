@@ -901,14 +901,37 @@
                     .trim() ||
                   "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
                 size: 13,
-                color: "#cbd5e1",
+                color: "#0ea5e9", // accent-ish; any readable light color works
               },
             }
           : {
-              // LIGHT MODE: unchanged look
               scene,
               margin: { l: 0, r: 0, t: 0, b: 0 },
+              paper_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#ffffff",
+              plot_bgcolor:
+                getComputedStyle(document.body)
+                  .getPropertyValue("--bg")
+                  .trim() || "#ffffff",
+              template: "plotly_white",
+              font: {
+                family:
+                  getComputedStyle(document.body)
+                    .getPropertyValue("--font")
+                    .trim() ||
+                  "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+                size: 13,
+                color:
+                  getComputedStyle(document.body)
+                    .getPropertyValue("--text")
+                    .trim() || "#0f172a",
+              },
             };
+
+        // Preserve UI interactions across redraws (zoom/orbit)
+        plot3dLayout.uirevision = "keep";
 
         // Reuse the previous camera if we have one
         if (lastCam3D) {
@@ -920,20 +943,30 @@
           responsive: true,
           scrollZoom: true,
           displaylogo: false,
+        }).then(() => {
+          // Belt-and-suspenders: explicitly re-apply camera after react merge (helps in light mode)
+          if (lastCam3D) {
+            Plotly.relayout(plot3dEl, { "scene.camera": lastCam3D });
+          }
         });
 
         // Attach once to record the latest camera after any user orbit/pan/zoom
         if (!plot3dEl._camListenerAttached) {
-          plot3dEl.on("plotly_relayout", () => {
-            if (
-              plot3dEl.layout &&
-              plot3dEl.layout.scene &&
-              plot3dEl.layout.scene.camera
-            ) {
-              // deep copy to avoid mutation by Plotly
-              lastCam3D = JSON.parse(
-                JSON.stringify(plot3dEl.layout.scene.camera)
-              );
+          plot3dEl.on("plotly_relayout", (ev) => {
+            // Prefer event payload when present (3D camera emits fine-grained keys)
+            const camFromEvent =
+              ev &&
+              ev["scene.camera"] &&
+              typeof ev["scene.camera"] === "object" &&
+              ev["scene.camera"];
+            const cam =
+              camFromEvent ||
+              (plot3dEl.layout &&
+                plot3dEl.layout.scene &&
+                plot3dEl.layout.scene.camera);
+
+            if (cam) {
+              lastCam3D = JSON.parse(JSON.stringify(cam));
             }
           });
           plot3dEl._camListenerAttached = true;
@@ -1029,6 +1062,8 @@
               },
               margin: { l: 28, r: 64, t: 60, b: 80 },
             };
+
+        plot2dLayout.uirevision = "keep";
 
         const colorsLight = {
           chamber: "#26a9e0", // (your original)
