@@ -1200,9 +1200,10 @@
           maximumFractionDigits: 12,
         });
 
-        const lines = ["Z" + DELIM + "R"];
+        // Added third column "Y" (all zeros) so 3-axis plotting tools are happy
+        const lines = ["Z" + DELIM + "R" + DELIM + "Y"];
         for (let i = 0; i < z.length; i++) {
-          lines.push(nf.format(z[i]) + DELIM + nf.format(r[i]));
+          lines.push(nf.format(z[i]) + DELIM + nf.format(r[i]) + DELIM + "0");
         }
 
         const csv = "\uFEFF" + lines.join("\r\n");
